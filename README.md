@@ -1,2 +1,3 @@
 # AimThing
-super duepr weird little aiming game
+
+super duper weird little aiming game
