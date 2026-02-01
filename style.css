@@ -1,0 +1,186 @@
+:root {
+    --first: #6ab7ff;
+    --second: #3a5f8f;
+    --third: #1a2332;
+    --green: #33a350;
+    --background: #16171c;
+    --dim: #0006;
+}
+
+html {
+    color-scheme: dark;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--background);
+}
+
+#menuOverlay {
+    position: fixed;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    background: var(--dim);
+    flex-direction: column;
+    z-index: 100;
+}
+
+#menuOverlay #float {
+    background: var(--third);
+    border-radius: 1em;
+    padding: 18px;
+    max-width: 90vw;
+}
+
+#game {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+.target {
+    border-radius: .5;
+    position: absolute;
+    user-select: none;
+    -webkit-user-drag: none;
+    cursor: crosshair;
+    animation: spawnAnim .3s;
+}
+
+.target.hit {
+    pointer-events: none;
+    animation: hitAnim .3s;
+}
+
+@keyframes spawnAnim {
+    0% {
+        transform: scale(.5);
+        opacity: 0.25;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes hitAnim {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(.3);
+        opacity: 0;
+    }
+}
+
+section {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+div h2 {
+    max-width: fit-content;
+    margin: auto;
+}
+
+h2 {
+    color: var(--first);
+}
+
+p, h5, small {
+    margin: 0;
+}
+
+h5, small {
+    opacity: .5;
+}
+
+#menuOverlay h4 {
+    margin: 10px;
+    text-align: center;
+}
+
+button {
+    display: block;
+    text-align: center;
+    background: var(--second);
+    border-radius: 1em;
+    padding: 2px 8px;
+    border: transparent;
+    font-size: inherit;
+    cursor: pointer;
+}
+
+button.mode {
+    width: 100%;
+    margin: 8px 0;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+button.mode.selected {
+    background: #4a7faf;
+    border-color: #7abfff;
+}
+
+.setting {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 6px 0;
+    padding: 6px 8px;
+    background: var(--dim);
+    border-radius: .5em;
+    gap: 8px;
+}
+
+.setting select, .setting input {
+    padding: 4px 8px;
+    background: var(--third);
+    border-radius: .25em;
+    border: transparent;
+    color: #fff;
+}
+
+button#start {
+    background: var(--green);
+    margin-top: 20px;
+    width: 100%;
+}
+
+header {
+    position: fixed;
+    z-index: 100;
+    pointer-events: none;
+    text-shadow: 2px 2px 0 var(--dim);
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+header * {
+    padding: 0;
+    margin: 0;
+}
+
+.noKeyboard {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 300;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--second);
+    color: #fff;
+    border: none;
+}
