@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <link rel="stylesheet" href="style.css">
+    <title>Aim Thing</title>
+    <link rel="icon" sizes="75x75" href="/assets/favicon.png">
+    <meta name="description" content="super duper weird little aiming game">
+    <link rel="author" href="Lukiiy">
+</head>
+<body>
+    <header>
+        <h1 id="score">0</h1>
+        <h2 id="timer"></h2>
+    </header>
+
+    <button id="noKeyEsc" class="noKeyboard" aria-hidden="true" style="display: none;" onclick="menu.show()">Back</button>
+    <div id="game"></div>
+
+    <section id="menuOverlay" role="dialog" aria-modal="true">
+        <div id="float">
+            <h2>Aim Thing</h2>
+
+            <section>
+                <div id="gameOver" style="display: none;">
+                    <h4>Over!</h4>
+                    <div class="setting">
+                        <p>Score:</p>
+                        <b id="overScore">??</b>
+                    </div>
+                    <div class="setting">
+                        <p>High Score:</p>
+                        <b id="overHigh">??</b>
+                    </div>
+                </div>
+
+                <div>
+                    <h4>Mode</h4>
+                    <button class="mode selected" data-mode="classic" type="button">Classic</button>
+                    <button class="mode" data-mode="timetrial" type="button">Time Trial</button>
+                    <button class="mode" data-mode="tracking" type="button">Tracking</button>
+                    <button class="mode" data-mode="strafe" type="button">Strafing</button>
+                </div>
+
+                <div>
+                    <h4>Settings</h4>
+
+                    <div class="setting" id="speedSetting">
+                        <label>Speed:</label>
+                        <select id="speedSelect">
+                            <option value="slow">Slow</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="fast">Fast</option>
+                            <option value="insane">Very fast</option>
+                        </select>
+                    </div>
+                    <div class="setting" id="timeSetting" style="display: none;">
+                        <label>Time Limit:</label>
+                        <select id="timeSelect">
+                            <option value="5">5s</option>
+                            <option value="15">15s</option>
+                            <option value="30" selected>30s</option>
+                            <option value="60">60s</option>
+                            <option value="90">90s</option>
+                        </select>
+                    </div>
+                    <div class="setting">
+                        <label>Target Count:</label>
+                        <select id="countSelect">
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="7">7</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                    <div class="setting">
+                        <label>Target Size:</label>
+                        <select id="sizeSelect">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <noscript style="color: #eb4034;">JavaScript is disabled, which is required!</noscript>
+            <button id="start" type="button" onclick="game.start()" style="display: none;">Start</button>
+        </div>
+        <h5>Version 1.0</h5>
+    </section>
+
+    <script src="app.js" defer></script>
+</body>
+</html>
