@@ -29,6 +29,7 @@ function updateSettingsVisibility(mode) {
 
     document.getElementById("speedSetting").style.display = movingModes.includes(mode) ? "flex" : "none";
     document.getElementById("timeSetting").style.display = mode === "timetrial" ? "flex" : "none";
+    document.getElementById("countSetting").style.display = mode === "tracking" ? "none" : "flex";
 }
 
 document.querySelectorAll("button.mode").forEach(btn => {
