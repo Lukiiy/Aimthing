@@ -17,8 +17,8 @@
         <h2 id="timer"></h2>
     </header>
 
-    <button id="noKeyEsc" class="noKeyboard" aria-hidden="true" style="display: none;" onclick="menu.show()">Back</button>
-    <div id="game"></div>
+    <button id="noKeyEsc" class="noKeyboard" aria-hidden="true" onclick="game.stop()" style="display: none;"><b/button>←</button></button>
+    <div id="game" draggable="false"></div>
 
     <section id="menuOverlay" role="dialog" aria-modal="true">
         <div id="float">
@@ -26,7 +26,7 @@
 
             <section>
                 <div id="gameOver" style="display: none;">
-                    <h4>Over!</h4>
+                    <h4 id="overTitle"></h4>
                     <div class="setting">
                         <p>Score:</p>
                         <b id="overScore">??</b>
@@ -35,12 +35,15 @@
                         <p>High Score:</p>
                         <b id="overHigh">??</b>
                     </div>
+                    <div class="setting">
+                        <p>Duration:</p>
+                        <b id="duration">??</b>
+                    </div>
                 </div>
 
                 <div>
                     <h4>Mode</h4>
                     <button class="mode selected" data-mode="classic" type="button">Classic</button>
-                    <button class="mode" data-mode="timetrial" type="button">Time Trial</button>
                     <button class="mode" data-mode="tracking" type="button">Tracking</button>
                     <button class="mode" data-mode="strafe" type="button">Strafing</button>
                 </div>
@@ -57,27 +60,31 @@
                             <option value="insane">Very fast</option>
                         </select>
                     </div>
-                    <div class="setting" id="timeSetting" style="display: none;">
-                        <label>Time Limit:</label>
+                    <div class="setting" id="timeSetting">
+                        <label>Timer:</label>
                         <select id="timeSelect">
-                            <option value="5">5s</option>
+                            <option value="disabled">∞</option>
                             <option value="15">15s</option>
                             <option value="30" selected>30s</option>
                             <option value="60">60s</option>
                             <option value="90">90s</option>
+                            <option value="custom">Custom</option>
                         </select>
+                        <input id="timerInput" type="number" min="1" max="99999" value="1" style="display: none;" />
                     </div>
-                    <div class="setting"  id="countSetting">
-                        <label>Target Count:</label>
+                    <div class="setting" id="countSetting">
+                        <label>Count:</label>
                         <select id="countSelect">
                             <option value="3">3</option>
                             <option value="5" selected>5</option>
                             <option value="7">7</option>
                             <option value="10">10</option>
+                            <option value="custom">Custom</option>
                         </select>
+                        <input id="countInput" type="number" min="1" max="99999" value="1" style="display: none;" />
                     </div>
                     <div class="setting">
-                        <label>Target Size:</label>
+                        <label>Size:</label>
                         <select id="sizeSelect">
                             <option value="small">Small</option>
                             <option value="medium" selected>Medium</option>
@@ -90,9 +97,11 @@
             <noscript style="color: #eb4034;">JavaScript is disabled, which is required!</noscript>
             <button id="start" type="button" onclick="game.start()" style="display: none;">Start</button>
         </div>
-        <h5>Version 1.0</h5>
+        <h5>Version 1.1</h5>
     </section>
 
-    <script src="app.js" defer></script>
+    <script src="scripts/target.js" defer></script>
+    <script src="scripts/game.js" defer></script>
+    <script src="scripts/menu.js" defer></script>
 </body>
 </html>
