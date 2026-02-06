@@ -26,7 +26,7 @@ body {
     justify-content: center;
     background: var(--dim);
     flex-direction: column;
-    z-index: 100;
+    z-index: 10;
 }
 
 #menuOverlay #float {
@@ -103,6 +103,11 @@ h5, small {
     opacity: .5;
 }
 
+#score {
+    -webkit-text-stroke: 6px #000;
+    paint-order: stroke fill;
+}
+
 #menuOverlay h4 {
     margin: 10px;
     text-align: center;
@@ -140,7 +145,7 @@ button.mode.selected {
     padding: 6px 8px;
     background: var(--dim);
     border-radius: .5em;
-    gap: 8px;
+    gap: .5em;
 }
 
 .setting select, .setting input {
@@ -151,15 +156,23 @@ button.mode.selected {
     color: #fff;
 }
 
+.setting select {
+    width: 6.25em;
+}
+
+.setting input {
+    width: 3.25em;
+}
+
 button#start {
     background: var(--green);
-    margin-top: 20px;
+    margin-top: .5em;
     width: 100%;
 }
 
 header {
     position: fixed;
-    z-index: 100;
+    z-index: 5;
     pointer-events: none;
     text-shadow: 2px 2px 0 var(--dim);
     top: 20px;
@@ -177,7 +190,7 @@ header * {
     position: fixed;
     top: 12px;
     left: 12px;
-    z-index: 300;
+    z-index: 5;
     padding: 6px 10px;
     border-radius: 8px;
     background: var(--second);
