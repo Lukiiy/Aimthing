@@ -9,7 +9,6 @@ class Game {
     constructor() {
         this.score = 0;
         this.highScore = 0;
-        this.running = false;
         this.mode = "classic";
         this.settings = {};
         this.targets = [];
@@ -18,6 +17,9 @@ class Game {
         this.trackingScore = 0;
         this.trackingInterval = null;
         this.startTime = 0;
+
+        this.running = false;
+        this.loop = null;
     }
 
     start() {
@@ -33,6 +35,15 @@ class Game {
         document.getElementById("timer").textContent = "";
 
         this.running = true;
+
+        const loop = () => {
+            if (!this.running) return;
+
+            Targets.loopAll('tick');
+            requestAnimationFrame(loop);
+        };
+
+        requestAnimationFrame(loop);
 
         switch (this.mode) {
             case "timetrial":
@@ -66,8 +77,14 @@ class Game {
         }
     }
 
-    stop(overReason = "Over!") {
+    stopTicking() {
+        clearInterval(this.loop);
+
         this.running = false;
+    }
+
+    stop(overReason = "Over!") {
+        this.stopTicking();
         menu.show();
 
         document.getElementById("gameOver").style.display = "";
@@ -94,6 +111,7 @@ class Game {
 
     addScore(points = 1) {
         this.score += points;
+
         document.getElementById("score").textContent = this.score;
     }
 
