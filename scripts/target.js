@@ -84,6 +84,15 @@ function normalizeAngle(angle) {
 const reflectedAngleHorizontally = (angle) => Math.PI - angle;
 const reflectedAngleVertically = (angle) => -angle;
 
+const angleDiff = (a, b) => {
+    let diff = a - b;
+
+    diff = (diff + Math.PI) % (2 * Math.PI);
+    if (diff < 0) diff += 2 * Math.PI;
+
+    return diff - Math.PI;
+};
+
 /**
  * Reflects an angle-based target off bounds
  * @param target Target instance
@@ -190,6 +199,8 @@ class Target {
             this.element.classList.remove("hit");
         }, 300);
     }
+
+    tick() {}
 }
 
 class TrackingTarget extends Target {
@@ -209,12 +220,12 @@ class TrackingTarget extends Target {
         this.vx = (Math.random() - 0.5) * base;
         this.vy = (Math.random() - 0.5) * base;
         this.angle = Math.atan2(this.vy || 0.0001, this.vx || 0.0001);
-        this.speed = Math.hypot(this.vx, this.vy) || 0.9;
         this.angleTarget = this.angle;
+
+        this.speed = Math.hypot(this.vx, this.vy) || 0.9;
         this.speedTarget = 1;
-        this.nextDirChange = Math.floor(Math.random() * (TRACKING.DIR_CHANGE_MAX - TRACKING.DIR_CHANGE_MIN) + TRACKING.DIR_CHANGE_MIN);
-        this.nextSpeedEvent = Math.floor(Math.random() * (TRACKING.SPEED_EVENT_MAX - TRACKING.SPEED_EVENT_MIN) + TRACKING.SPEED_EVENT_MIN);
         this.speedTimer = 0;
+
         this.avoidAngle = null;
         this.avoidNextTurn = false;
     }
@@ -222,15 +233,17 @@ class TrackingTarget extends Target {
     init() {
         const base = TRACKING.BASE_MULT * window.game.getSpeedMultiplier();
 
-        this.vx = (Math.random() - 0.5) * base;
-        this.vy = (Math.random() - 0.5) * base;
+        this.vx = (Math.random() - .5) * base;
+        this.vy = (Math.random() - .5) * base;
         this.angle = Math.atan2(this.vy || 0.0001, this.vx || 0.0001);
-        this.speed = Math.hypot(this.vx, this.vy) || 0.9;
         this.angleTarget = this.angle;
+        this.speed = Math.hypot(this.vx, this.vy) || 0.9;
         this.speedTarget = 1;
+        this.speedTimer = 0;
+
         this.nextDirChange = Math.floor(Math.random() * (TRACKING.DIR_CHANGE_MAX - TRACKING.DIR_CHANGE_MIN) + TRACKING.DIR_CHANGE_MIN);
         this.nextSpeedEvent = Math.floor(Math.random() * (TRACKING.SPEED_EVENT_MAX - TRACKING.SPEED_EVENT_MIN) + TRACKING.SPEED_EVENT_MIN);
-        this.speedTimer = 0;
+
         this.avoidAngle = null;
         this.avoidNextTurn = false;
     }
@@ -250,77 +263,61 @@ class TrackingTarget extends Target {
 
     remove() {
         clearInterval(this.trackingInterval);
+
         super.remove();
     }
 
-    startAnimation() {
-        const angDiff = (a, b) => {
-            let diff = a - b;
+    tick() {
+        if (--this.nextDirChange <= 0) {
+            let candidate;
+            let attempts = 0;
 
-            diff = (diff + Math.PI) % (2 * Math.PI);
-            if (diff < 0) diff += 2 * Math.PI;
+            do {
+                candidate = Math.random() * Math.PI * 2;
+                attempts++;
 
-            return diff - Math.PI;
-        };
+                if (!this.avoidNextTurn || !this.avoidAngle) break;
+                if (Math.abs(((candidate - this.avoidAngle.center + Math.PI) % (2 * Math.PI)) - Math.PI) > this.avoidAngle.range) break;
+            } while (attempts < 12);
 
-        const loop = () => {
-            if (!window.game.running) return;
+            this.angleTarget = candidate;
+            this.nextDirChange = Math.floor(Math.random() * (TRACKING.DIR_CHANGE_MAX - TRACKING.DIR_CHANGE_MIN) + TRACKING.DIR_CHANGE_MIN);
+            this.avoidNextTurn = false;
+            this.avoidAngle = null;
+        }
 
-            if (--this.nextDirChange <= 0) {
-                let candidate;
-                let attempts = 0;
+        if (--this.nextSpeedEvent <= 0) {
+            this.speedTarget = (Math.random() * 1.2) + 0.6;
+            this.speedTimer = Math.floor(Math.random() * (TRACKING.SPEED_TIMER_MAX - TRACKING.SPEED_TIMER_MIN) + TRACKING.SPEED_TIMER_MIN);
+            this.nextSpeedEvent = Math.floor(Math.random() * (TRACKING.SPEED_EVENT_MAX - TRACKING.SPEED_EVENT_MIN) + TRACKING.SPEED_EVENT_MIN);
+        }
 
-                do {
-                    candidate = Math.random() * Math.PI * 2;
-                    attempts++;
+        if (this.speedTimer > 0) {
+            this.speedTimer--;
 
-                    if (!this.avoidNextTurn || !this.avoidAngle) break;
-                    if (Math.abs(((candidate - this.avoidAngle.center + Math.PI) % (2 * Math.PI)) - Math.PI) > this.avoidAngle.range) break;
-                } while (attempts < 12);
+            if (this.speedTimer === 0) this.speedTarget = 1;
+        }
 
-                this.angleTarget = candidate;
-                this.nextDirChange = Math.floor(Math.random() * (TRACKING.DIR_CHANGE_MAX - TRACKING.DIR_CHANGE_MIN) + TRACKING.DIR_CHANGE_MIN);
-                this.avoidNextTurn = false;
-                this.avoidAngle = null;
-            }
+        this.angle += angleDiff(this.angleTarget, this.angle) * TRACKING.TURN_LERP;
+        this.speed += (this.speedTarget - this.speed) * TRACKING.SPEED_LERP;
+        this.x += Math.cos(this.angle) * this.speed * window.game.getSpeedMultiplier();
+        this.y += Math.sin(this.angle) * this.speed * window.game.getSpeedMultiplier();
 
-            if (--this.nextSpeedEvent <= 0) {
-                this.speedTarget = (Math.random() * 1.2) + 0.6;
-                this.speedTimer = Math.floor(Math.random() * (TRACKING.SPEED_TIMER_MAX - TRACKING.SPEED_TIMER_MIN) + TRACKING.SPEED_TIMER_MIN);
-                this.nextSpeedEvent = Math.floor(Math.random() * (TRACKING.SPEED_EVENT_MAX - TRACKING.SPEED_EVENT_MIN) + TRACKING.SPEED_EVENT_MIN);
-            }
-
-            if (this.speedTimer > 0) {
-                this.speedTimer--;
-
-                if (this.speedTimer === 0) this.speedTarget = 1;
-            }
-
-            this.angle += angDiff(this.angleTarget, this.angle) * TRACKING.TURN_LERP;
-            this.speed += (this.speedTarget - this.speed) * TRACKING.SPEED_LERP;
-            this.x += Math.cos(this.angle) * this.speed * window.game.getSpeedMultiplier();
-            this.y += Math.sin(this.angle) * this.speed * window.game.getSpeedMultiplier();
-
-            if (handleAngleBounds(this)) {
-                this.angleTarget = this.angle;
-                this.avoidAngle = {
-                    center: normalizeAngle(this.angle + Math.PI),
-                    range: TRACKING.BORDER_ANGLE_RANGE
-                };
-                this.avoidNextTurn = true;
-                this.nextDirChange = Math.floor(Math.random() * (TRACKING.DIR_CHANGE_MAX - TRACKING.DIR_CHANGE_MIN) + TRACKING.DIR_CHANGE_MIN);
-                this.x += Math.cos(this.angle) * TRACKING.BARRIER_PUSH;
-                this.y += Math.sin(this.angle) * TRACKING.BARRIER_PUSH;
-            }
+        if (handleAngleBounds(this)) {
+            this.angleTarget = this.angle;
+            this.avoidAngle = {
+                center: normalizeAngle(this.angle + Math.PI),
+                range: TRACKING.BORDER_ANGLE_RANGE
+            };
+            this.avoidNextTurn = true;
+            this.nextDirChange = Math.floor(Math.random() * (TRACKING.DIR_CHANGE_MAX - TRACKING.DIR_CHANGE_MIN) + TRACKING.DIR_CHANGE_MIN);
+            this.x += Math.cos(this.angle) * TRACKING.BARRIER_PUSH;
+            this.y += Math.sin(this.angle) * TRACKING.BARRIER_PUSH;
+        }
 
 
-            this.element.style.left = `${this.x}px`;
-            this.element.style.top = `${this.y}px`;
-
-            requestAnimationFrame(loop);
-        };
-
-        loop();
+        this.element.style.left = `${this.x}px`;
+        this.element.style.top = `${this.y}px`;
     }
 }
 
@@ -386,69 +383,61 @@ class StrafeTarget extends Target {
         this.nextMovementChange = Math.floor(Math.random() * 220 + 140);
     }
 
-    startAnimation() {
-        const loop = () => {
-            if (!window.game.running) return;
+    tick() {
+        this.strafeTimer++;
 
-            this.strafeTimer++;
+        if (Math.random() < STRAFE.SIGN_FLIP_CHANCE) {
+            this.vxTarget = -this.vxTarget;
+            this.vyTarget = -this.vyTarget;
+        }
 
-            if (Math.random() < STRAFE.SIGN_FLIP_CHANCE) {
-                this.vxTarget = -this.vxTarget;
-                this.vyTarget = -this.vyTarget;
+        this.vx += (this.vxTarget - this.vx) * STRAFE.VEL_LERP;
+        this.vy += (this.vyTarget - this.vy) * STRAFE.VEL_LERP;
+
+        const maxSpeed = STRAFE.MAX_SPEED_MULT * window.game.getSpeedMultiplier();
+
+        this.vx = clamp(this.vx, -maxSpeed, maxSpeed);
+        this.vy = clamp(this.vy, -maxSpeed, maxSpeed);
+
+        if (this.strafeTimer > this.nextChangeTime) {
+            const tweak = Math.random() * (STRAFE.TWEAK_MAX - STRAFE.TWEAK_MIN) + STRAFE.TWEAK_MIN;
+
+            this.vxTarget = clamp(this.vxTarget * tweak, -maxSpeed, maxSpeed);
+            this.vyTarget = clamp(this.vyTarget * tweak, -maxSpeed, maxSpeed);
+            this.nextChangeTime = Math.floor(Math.random() * (STRAFE.CHANGE_MAX - STRAFE.CHANGE_MIN) + STRAFE.CHANGE_MIN);
+        }
+
+        if (this.strafeTimer > this.nextMovementChange) {
+            const modes = ["horizontal", "vertical", "diagonal"];
+            this.movementMode = modes[Math.floor(Math.random() * modes.length)];
+
+            const base = 0.9 * window.game.getSpeedMultiplier();
+
+            if (this.movementMode === "horizontal") {
+                this.vxTarget = (Math.random() > .5 ? 1 : -1) * base * (Math.random() * .4 + .8);
+                this.vyTarget = 0;
+            } else if (this.movementMode === "vertical") {
+                this.vxTarget = 0;
+                this.vyTarget = (Math.random() > .5 ? 1 : -1) * base * (Math.random() * .4 + .8);
+            } else {
+                const ang = Math.random() * Math.PI * 2;
+                const scale = base * (Math.random() * 0.4 + 0.8);
+
+                this.vxTarget = Math.cos(ang) * scale;
+                this.vyTarget = Math.sin(ang) * scale;
             }
 
-            this.vx += (this.vxTarget - this.vx) * STRAFE.VEL_LERP;
-            this.vy += (this.vyTarget - this.vy) * STRAFE.VEL_LERP;
+            this.strafeTimer = 0;
+            this.nextMovementChange = Math.floor(Math.random() * (STRAFE.MOVE_CHANGE_MAX - STRAFE.MOVE_CHANGE_MIN) + STRAFE.MOVE_CHANGE_MIN);
+        }
 
-            const maxSpeed = STRAFE.MAX_SPEED_MULT * window.game.getSpeedMultiplier();
+        this.x += this.vx;
+        this.y += this.vy;
 
-            this.vx = clamp(this.vx, -maxSpeed, maxSpeed);
-            this.vy = clamp(this.vy, -maxSpeed, maxSpeed);
+        handleVectorBounds(this);
 
-            if (this.strafeTimer > this.nextChangeTime) {
-                const tweak = Math.random() * (STRAFE.TWEAK_MAX - STRAFE.TWEAK_MIN) + STRAFE.TWEAK_MIN;
-
-                this.vxTarget = clamp(this.vxTarget * tweak, -maxSpeed, maxSpeed);
-                this.vyTarget = clamp(this.vyTarget * tweak, -maxSpeed, maxSpeed);
-                this.nextChangeTime = Math.floor(Math.random() * (STRAFE.CHANGE_MAX - STRAFE.CHANGE_MIN) + STRAFE.CHANGE_MIN);
-            }
-
-            if (this.strafeTimer > this.nextMovementChange) {
-                const modes = ["horizontal", "vertical", "diagonal"];
-                this.movementMode = modes[Math.floor(Math.random() * modes.length)];
-
-                const base = 0.9 * window.game.getSpeedMultiplier();
-
-                if (this.movementMode === "horizontal") {
-                    this.vxTarget = (Math.random() > .5 ? 1 : -1) * base * (Math.random() * .4 + .8);
-                    this.vyTarget = 0;
-                } else if (this.movementMode === "vertical") {
-                    this.vxTarget = 0;
-                    this.vyTarget = (Math.random() > .5 ? 1 : -1) * base * (Math.random() * .4 + .8);
-                } else {
-                    const ang = Math.random() * Math.PI * 2;
-                    const scale = base * (Math.random() * 0.4 + 0.8);
-
-                    this.vxTarget = Math.cos(ang) * scale;
-                    this.vyTarget = Math.sin(ang) * scale;
-                }
-
-                this.strafeTimer = 0;
-                this.nextMovementChange = Math.floor(Math.random() * (STRAFE.MOVE_CHANGE_MAX - STRAFE.MOVE_CHANGE_MIN) + STRAFE.MOVE_CHANGE_MIN);
-            }
-
-            this.x += this.vx;
-            this.y += this.vy;
-
-            handleVectorBounds(this);
-
-            this.element.style.left = `${this.x}px`;
-            this.element.style.top = `${this.y}px`;
-
-            requestAnimationFrame(loop);
-        };
-
-        loop();
+        this.element.style.left = `${this.x}px`;
+        this.element.style.top = `${this.y}px`;
     }
 }
 
@@ -459,7 +448,6 @@ window.Targets = {
 
         if (type === "tracking") t = new TrackingTarget();
         if (type === "strafe") t = new StrafeTarget();
-        if (type !== "default") t.startAnimation();
 
         t.addHandlers(game);
         t.applySize(game.getSizeClass());
@@ -473,5 +461,11 @@ window.Targets = {
     clearAll() {
         window.game.targets.forEach(t => t && t.remove());
         window.game.targets = [];
+    },
+
+    loopAll(method, ...args) {
+        window.game.targets.forEach(t => {
+            if (t && typeof t[method] === "function") t[method](...args);
+        });
     }
 }
