@@ -197,3 +197,29 @@ header * {
     color: #fff;
     border: none;
 }
+
+#menuOverlay small {
+    --padding: 5px;
+    font-weight: 400;
+    position: fixed;
+    z-index: 11;
+    opacity: .5;
+    transition: opacity .25s;
+    bottom: var(--padding);
+}
+
+#menuOverlay small:hover {
+    opacity: 1;
+}
+
+#src {
+    left: var(--padding);
+}
+
+#cred {
+    right: var(--padding);
+}
+
+#src a {
+    text-decoration: none;
+}
