@@ -102,6 +102,7 @@ function handleAngleBounds(target) {
     const size = parseInt(window.game.getSizeClass(), 10);
     const maxX = window.innerWidth - size;
     const maxY = window.innerHeight - size;
+
     let hit = false;
     let newAngle = target.angle;
 
@@ -198,6 +199,13 @@ class Target {
         this.y = 0;
         this.vx = 0;
         this.vy = 0;
+
+        this.element.addEventListener("animationend", (e) => {
+            if (e.animationName !== "hitAnim") return;
+
+            this.teleportRandom();
+            this.element.classList.remove("hit");
+        });
     }
 
     applySize(size) {
@@ -240,11 +248,6 @@ class Target {
 
     hit() {
         this.element.classList.add("hit");
-
-        setTimeout(() => {
-            this.teleportRandom();
-            this.element.classList.remove("hit");
-        }, 300);
     }
 
     tick() {}
@@ -272,24 +275,6 @@ class TrackingTarget extends Target {
         this.speed = Math.hypot(this.vx, this.vy) || 0.9;
         this.speedTarget = 1;
         this.speedTimer = 0;
-
-        this.avoidAngle = null;
-        this.avoidNextTurn = false;
-    }
-
-    init() {
-        const base = TRACKING.BASE_MULT * window.game.getSpeedMultiplier();
-
-        this.vx = (Math.random() - .5) * base;
-        this.vy = (Math.random() - .5) * base;
-        this.angle = Math.atan2(this.vy || 0.0001, this.vx || 0.0001);
-        this.angleTarget = this.angle;
-        this.speed = Math.hypot(this.vx, this.vy) || 0.9;
-        this.speedTarget = 1;
-        this.speedTimer = 0;
-
-        this.nextDirChange = Math.floor(Math.random() * (TRACKING.DIR_CHANGE_MAX - TRACKING.DIR_CHANGE_MIN) + TRACKING.DIR_CHANGE_MIN);
-        this.nextSpeedEvent = Math.floor(Math.random() * (TRACKING.SPEED_EVENT_MAX - TRACKING.SPEED_EVENT_MIN) + TRACKING.SPEED_EVENT_MIN);
 
         this.avoidAngle = null;
         this.avoidNextTurn = false;
@@ -375,31 +360,6 @@ class StrafeTarget extends Target {
         this.nextMovementChange = 0;
         this.movementMode = "horizontal";
 
-        const moveModes = ["horizontal", "vertical", "diagonal"];
-        this.movementMode = moveModes[Math.floor(Math.random() * moveModes.length)];
-
-        const base = .9 * window.game.getSpeedMultiplier();
-
-        if (this.movementMode === "horizontal") {
-            this.vxTarget = (Math.random() > .5 ? 1 : -1) * base * (Math.random() * .4 + .8);
-            this.vyTarget = 0;
-        } else if (this.movementMode === "vertical") {
-            this.vxTarget = 0;
-            this.vyTarget = (Math.random() > .5 ? 1 : -1) * base * (Math.random() * .4 + .8);
-        } else {
-            const ang = Math.random() * Math.PI * 2;
-            const scale = base * (Math.random() * .4 + .8);
-
-            this.vxTarget = Math.cos(ang) * scale;
-            this.vyTarget = Math.sin(ang) * scale;
-        }
-
-        this.strafeTimer = 0;
-        this.nextChangeTime = Math.floor(Math.random() * 120 + 60);
-        this.nextMovementChange = Math.floor(Math.random() * 220 + 140);
-    }
-
-    init() {
         const moveModes = ["horizontal", "vertical", "diagonal"];
         this.movementMode = moveModes[Math.floor(Math.random() * moveModes.length)];
 
