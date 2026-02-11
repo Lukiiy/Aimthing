@@ -152,6 +152,42 @@ function handleVectorBounds(target) {
     }
 }
 
+function retryUntil(method, check, maxAttempts) {
+    let result;
+    let attempts = 0;
+
+    do {
+        result = method();
+        attempts++;
+
+        if (check(result)) return result;
+    } while (attempts < maxAttempts);
+
+    return result;
+}
+
+function getObjectsToAvoid() {
+    return Array.from(document.querySelectorAll(".targetAvoid")).filter(obj => obj.style.display !== "none").map(obj => {
+        const rect = obj.getBoundingClientRect();
+
+        return {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+            radius: Math.max(rect.width, rect.height) / 2 + 30
+        };
+    });
+}
+
+function isTooCloseToAvoid(x, y, avoidRadius = 30) {
+    const avoidObjs = getObjectsToAvoid();
+
+    return avoidObjs.some(obj => {
+        const dist = Math.hypot(x - obj.x, y - obj.y);
+
+        return dist < obj.radius + avoidRadius;
+    });
+}
+
 class Target {
     constructor(type = "default") {
         this.type = type;
@@ -171,8 +207,19 @@ class Target {
     teleportRandom() {
         const size = parseInt(window.game.getSizeClass(), 10);
 
-        this.x = Math.random() * (window.innerWidth - size);
-        this.y = Math.random() * (window.innerHeight - size);
+        if (getObjectsToAvoid().length === 0) {
+            this.x = Math.random() * (window.innerWidth - size);
+            this.y = Math.random() * (window.innerHeight - size);
+        } else {
+            const pos = retryUntil(() => ({
+                x: Math.random() * (window.innerWidth - size),
+                y: Math.random() * (window.innerHeight - size)
+            }), (loc) => !isTooCloseToAvoid(loc.x + size/2, loc.y + size/2), 50);
+
+            this.x = pos.x;
+            this.y = pos.y;
+        }
+
         this.element.style.left = `${this.x}px`;
         this.element.style.top = `${this.y}px`;
     }
@@ -269,18 +316,12 @@ class TrackingTarget extends Target {
 
     tick() {
         if (--this.nextDirChange <= 0) {
-            let candidate;
-            let attempts = 0;
+            this.angleTarget = retryUntil( () => Math.random() * Math.PI * 2, (candidate) => {
+                if (!this.avoidNextTurn || !this.avoidAngle) return true;
 
-            do {
-                candidate = Math.random() * Math.PI * 2;
-                attempts++;
+                return Math.abs(((candidate - this.avoidAngle.center + Math.PI) % (2 * Math.PI)) - Math.PI) > this.avoidAngle.range;
+            }, 12);
 
-                if (!this.avoidNextTurn || !this.avoidAngle) break;
-                if (Math.abs(((candidate - this.avoidAngle.center + Math.PI) % (2 * Math.PI)) - Math.PI) > this.avoidAngle.range) break;
-            } while (attempts < 12);
-
-            this.angleTarget = candidate;
             this.nextDirChange = Math.floor(Math.random() * (TRACKING.DIR_CHANGE_MAX - TRACKING.DIR_CHANGE_MIN) + TRACKING.DIR_CHANGE_MIN);
             this.avoidNextTurn = false;
             this.avoidAngle = null;
