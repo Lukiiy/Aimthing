@@ -49,7 +49,7 @@ class Game {
             case "timetrial":
                 this.spawnTargets(this.settings.count, "default");
                 break;
-            case "tracking": // TODO - proper mobile support
+            case "tracking":
                 Targets.create("tracking");
                 break;
             case "strafe":
