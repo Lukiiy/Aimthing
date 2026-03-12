@@ -285,6 +285,26 @@ class TrackingTarget extends Target {
 
         this.element.addEventListener("mouseenter", () => hover = true);
         this.element.addEventListener("mouseleave", () => hover = false);
+
+        this._touchMoveHandler = (e) => {
+            e.preventDefault();
+
+            const touch = e.touches[0];
+            if (!touch) return;
+
+            const obj = document.elementFromPoint(touch.clientX, touch.clientY);
+
+            hover = obj === this.element || this.element.contains(obj);
+        };
+
+        this._touchEndHandler = () => hover = false;
+
+        const gameInst = document.getElementById("game");
+
+        gameInst.addEventListener("touchmove", this._touchMoveHandler, { passive: false });
+        gameInst.addEventListener("touchend", this._touchEndHandler, { passive: true });
+        gameInst.addEventListener("touchcancel", this._touchEndHandler, { passive: true });
+
         this.trackingInterval = setInterval(() => {
             if (hover) {
                 game.trackingScore++;
@@ -294,8 +314,16 @@ class TrackingTarget extends Target {
     }
 
     remove() {
-        clearInterval(this.trackingInterval);
+        const gameInst = document.getElementById("game");
 
+        if (this._touchMoveHandler) gameInst.removeEventListener("touchmove", this._touchMoveHandler);
+
+        if (this._touchEndHandler) {
+            gameInst.removeEventListener("touchend", this._touchEndHandler);
+            gameInst.removeEventListener("touchcancel", this._touchEndHandler);
+        }
+
+        clearInterval(this.trackingInterval);
         super.remove();
     }
 
