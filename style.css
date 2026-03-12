@@ -186,7 +186,7 @@ header * {
     margin: 0;
 }
 
-.noKeyboard {
+#noKeyEsc {
     position: fixed;
     top: 12px;
     left: 12px;
@@ -196,6 +196,7 @@ header * {
     background: var(--second);
     color: #fff;
     border: none;
+    line-height: 1;
 }
 
 #menuOverlay small {
