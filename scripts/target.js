@@ -39,9 +39,12 @@ function touchHandle(self, target) {
         }
     }, { passive: false });
 
-    obj.addEventListener("touchend", () => {
-        if (!handled) self.hitTarget(target);
-    }, { passive: true });
+    obj.addEventListener("touchend", (e) => {
+        if (!handled) {
+            e.preventDefault();
+            self.hitTarget(target);
+        }
+    }, { passive: false });
 }
 
 const TRACKING = {
