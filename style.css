@@ -33,7 +33,7 @@ body {
     background: var(--third);
     border-radius: 1em;
     padding: 18px;
-    max-width: 90vw;
+    max-width: 70vw;
 }
 
 #game {
